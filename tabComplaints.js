@@ -58,8 +58,12 @@ const getWorkbookWiseData = async (sheets, sheetNames) => {
             const data = response.data.values || [];
             console.log(`Data for ${sheetName}:`, data.length - 1);
 
+            // change array of array data to array of objects like api response
+            const [headers, ...rows] = data;
+            const result = rows.map(row => Object.fromEntries(headers.map((key, index) => [key, row[index]])));
+
             // Add data to the workbook object
-            workbookData[sheetName] = data;
+            workbookData[sheetName] = result;
 
         } catch (error) {
             console.error(`Error fetching data for ${sheetName}:`, error);
@@ -81,14 +85,13 @@ const createSeparateExcelFiles = (workbookData) => {
 
     // Iterate over each sheet's data and create a separate .xlsx file
     for (const sheetName in workbookData) {
-        let newSheetName = sheetName?.replace('/', '-');
         const data = workbookData[sheetName];
 
         // Create a new workbook for each sheet
         const wb = xlsx.utils.book_new();
-        const ws = xlsx.utils.aoa_to_sheet(data); // Convert array of arrays to a worksheet
-        const fileName = `${newSheetName}_${currentFormattedDate}.xlsx`
-        xlsx.utils.book_append_sheet(wb, ws, newSheetName);
+        const ws = xlsx.utils.json_to_sheet(data);
+        const fileName = `${sheetName}_${currentFormattedDate}.xlsx`
+        xlsx.utils.book_append_sheet(wb, ws, sheetName);
 
         // Define file path for each sheet
         const filePath = path.join(reportsFolderPath, fileName);
