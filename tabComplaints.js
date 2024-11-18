@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'reports@techworks.co.in',
-        pass: 'vucto0-socWiz-cifjaj'
+        user: 'chirag.p@techworks.co.in',
+        pass: 'Byzzy1-jucton-gogkeq'
     }
 });
 
@@ -147,7 +147,7 @@ const sendMail = async () => {
         for (const i of workbookData['POC_LIST']) {
             let branchName = i?.Branch;
             let email = i?.Emails;
-            // console.log("Processing:", mailsForCC);
+            // console.log("Processing:", mailsForCC)
 
             reportDelivery(i, mailsForCC);
             await delay(5000);
@@ -159,8 +159,8 @@ async function reportDelivery(i, mailsForCC) {
     try {
         // send mail with defined transport object
         const info = await transporter.sendMail({
-            from: 'reports@techworks.co.in',
-            to: 'chirag.p@techworks.co.in',
+            from: 'chirag.p@techworks.co.in',
+            // to: 'chirag.p@techworks.co.in',
             // to: i?.Emails,
             // cc: mailsForCC,
             subject: `ITC TAB COMPLAINT ${i?.Branch} ${currentFormattedDate}`, // Subject line
