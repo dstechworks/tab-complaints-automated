@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'chirag.p@techworks.co.in',
+        user: 'hitesh.kumar@techworks.co.in',
         pass: 'Byzzy1-jucton-gogkeq'
     }
 });
@@ -20,8 +20,8 @@ const transporter2 = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'reports@techworks.co.in',
-        pass: 'vucto0-socWiz-cifjaj'
+        user: 'hitesh.kumar@techworks.co.in',
+        pass: 'Byzzy1-jucton-gogkeq'
     }
 });
 
