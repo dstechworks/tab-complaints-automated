@@ -5,23 +5,28 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require("nodemailer");
 
+let accountList = [
+    {
+        "user": "chirag.p@techworks.co.in",
+        "pass": "Byzzy1-jucton-gogkeq"
+    },
+    {
+        "user": "Bharti.singh@techworks.co.in",
+        "pass": "gymruc-saKpu8-purnoc"
+    },
+    {
+        "user": "hitesh.kumar@techworks.co.in",
+        "pass": "4VqvS&RY*ZFnqaU1"
+    },
+]
+
 const transporter = nodemailer.createTransport({
     host: "smtp.dreamhost.com",
     port: 465,
     secure: true,
     auth: {
-        user: 'hitesh.kumar@techworks.co.in',
-        pass: 'Byzzy1-jucton-gogkeq'
-    }
-});
-
-const transporter2 = nodemailer.createTransport({
-    host: "smtp.dreamhost.com",
-    port: 465,
-    secure: true,
-    auth: {
-        user: 'hitesh.kumar@techworks.co.in',
-        pass: 'Byzzy1-jucton-gogkeq'
+        user: accountList[0].user,
+        pass: accountList[0].pass
     }
 });
 
@@ -30,8 +35,8 @@ const spreadsheetId = "1MeBsVwqq-ZQlBO3tFK68ZUyDz1Uud1iQlrLl7vvXVb4";
 // Get the current date in Asia/Kolkata timezone
 const currentDate = moment().tz("Asia/Kolkata").toDate();
 const currentFormattedDate = moment(currentDate).format('DD-MM-YYYY');
-let Batch1Arr = ['NSAH', 'WNAG', 'SKAR', 'MPUN', 'WMUM', 'NCHA', 'ECAL', 'NJPR', 'WBHO'];
-let Batch2Arr = ['NDEL', 'WAHM', 'EPAT', 'NLUC', 'SHYD', 'SBLR'];
+let Batch1Arr = ['NSAH', 'WNAG', 'SKAR', 'WPUN', 'WMUM', 'NCHA', 'ECAL', 'NJPR'];
+let Batch2Arr = ['WBHO', 'NDEL', 'WAHM', 'EPAT', 'NLUC', 'SHYD', 'SBLR'];
 let workbookData = {};
 let branchListOfArr = [];
 
@@ -152,7 +157,7 @@ const createSeparateExcelFiles = (workbookData) => {
 
 
 const sendMail = async () => {
-    let mailsForCC = workbookData['POC_LIST'] ? workbookData['POC_LIST'].find(item => item.Branch === 'CC')?.Emails : null;
+    let mailsForCC = workbookData['POC_LIST'] ? workbookData['POC_LIST'][0]['Emails (For CC Section)'] : null;
     workbookData['POC_LIST'] = workbookData['POC_LIST'].filter(item => item.Branch !== 'CC');
 
     if (workbookData['POC_LIST']) {
@@ -161,32 +166,37 @@ const sendMail = async () => {
         for (let idx = 0; idx < workbookData['POC_LIST'].length; idx++) {
             const i = workbookData['POC_LIST'][idx];
             let branchName = i?.Branch;
-            let email = i?.Emails;
+            let emailCCSectionFromBaseSheet = i['Emails (For CC Section)']
+            let ccEmails = emailCCSectionFromBaseSheet ? `${emailCCSectionFromBaseSheet}, ${mailsForCC}` : mailsForCC;
+            let toEmails = i['Emails (For To Section)'];
 
-            console.log(`================Processing Branch: (${branchName})================`);
+            // console.log(`TO MAILS :- ${toEmails} CC MAILS :- ${ccEmails}`);
+            // console.log(mailsForCC);
 
-            // Ensure that each reportDelivery finishes before moving to the next
-            await reportDelivery(i, mailsForCC);
-            console.log(`============Finished processing Branch: (${branchName})============`);
-            console.log(`\n`);
-            await delay(5000);
+
+            if (Batch1Arr.includes(branchName)) {
+                console.log(`================Processing Branch: (${branchName})================`);
+
+                // Ensure that each reportDelivery finishes before moving to the next
+                await reportDelivery(i, toEmails, ccEmails);
+                console.log(`============Finished processing Branch: (${branchName})============`);
+                console.log(`\n`);
+                await delay(5000);
+            }
         }
     }
 }
 
-async function reportDelivery(i, mailsForCC) {
+async function reportDelivery(i, toEmails, ccEmails) {
     let fromEmail = 'reports@techworks.co.in';
-    if (Batch1Arr.includes(i?.Branch)) {
-        fromEmail = 'chirag.p@techworks.co.in';
-    }
 
     try {
         // send mail with defined transport object
-        const info = await (Batch1Arr.includes(i?.Branch) ? transporter : transporter2).sendMail({
+        const info = await transporter.sendMail({
             from: fromEmail,
             // to: 'hitesh.kumar@techworks.co.in',
-            to: i?.Emails,
-            cc: mailsForCC,
+            to: toEmails,
+            cc: ccEmails,
             subject: `ITC TAB COMPLAINT TRACKER ${i?.Branch} ${currentFormattedDate}`, // Subject line
             html: `<h6>Please find the attachment.</h6>
             <p>&nbsp;</p>
@@ -292,8 +302,8 @@ async function reportDelivery(i, mailsForCC) {
         });
 
         console.log(`Mail Send Succesfull.. (${i?.Branch})`);
-        console.log(`Mail Send to ${i?.Emails}`);
-        console.log(`Mail Send cc ${mailsForCC}`);
+        console.log(`Mail Send to ${toEmails}`);
+        console.log(`Mail Send cc ${ccEmails}`);
 
     } catch (error) {
         console.log(error);
